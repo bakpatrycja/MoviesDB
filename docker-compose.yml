@@ -1,0 +1,41 @@
+version: "3.2"
+services:
+  app:
+    command: node -r esm src/index.js
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env      
+    ports:
+      - published: ${APP_PORT:-3000}
+        target: 3000
+    volumes:
+      - .:/app/
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+
+  mysql:
+    image: mysql:latest
+    env_file:
+      - .env
+    environment:
+      MYSQL_HOST: $DB_HOST
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+    ports:
+      - 3306
+    restart: unless-stopped
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+
+  phpmyadmin:
+    depends_on:
+      - mysql
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+    links:
+      - mysql:mysql
+    ports:
+      - 5426:80
+    restart: always      
