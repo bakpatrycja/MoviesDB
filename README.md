@@ -22,7 +22,7 @@ https://app.swaggerhub.com/apis-docs/bak7patrycja/MovieAPI/1.0.0
 
 You need to have `docker`, `npm`, `node js` and `docker-compose` installed on your computer to run the service. By default the auth service and server will start on port `3000`.
 
-If you want go to MyPhpAdmin please just type this adress: http://localhost:5426/. Password and login are defined in .env file. MyPhpAdmin is a place where you can work on records and databased. .env file should be never ever shared on github, but for recruitment purpose i decided to share it with all files.
+If you want go to MyPhpAdmin please just type this adress: http://localhost:5426/. Example password and login are defined in .env file. MyPhpAdmin is a place where you can work on records and databased.
 
   
 
