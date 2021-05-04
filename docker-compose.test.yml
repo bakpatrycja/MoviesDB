@@ -27,7 +27,6 @@ services:
     env_file:
       - .test.env
     environment:
-      MYSQL_USER: $DB_USER
       MYSQL_HOST: $DB_HOST
       MYSQL_ROOT_PASSWORD: $DB_PASSWORD
     ports:
