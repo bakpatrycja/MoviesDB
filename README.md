@@ -30,7 +30,7 @@ If you want go to MyPhpAdmin please just type this adress: http://localhost:5426
 
   
 
-Clone this repository
+Clone this repository and remove example from example.env
 
   
 
