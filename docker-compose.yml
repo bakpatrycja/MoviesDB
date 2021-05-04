@@ -1,7 +1,7 @@
 version: "3.2"
 services:
   app:
-    command: node -r esm src/index.js
+    container_name: appdev  
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,7 +16,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
   mysql:
-    image: mysql:latest
+    container_name: mysqldev           
+    image: mysql:5.7
     env_file:
       - .env
     environment:
@@ -24,11 +25,16 @@ services:
       MYSQL_ROOT_PASSWORD: $DB_PASSWORD
     ports:
       - 3306
-    restart: unless-stopped
+    restart: unless-stopped     
     volumes:
       - ./db:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: mysql -u -p --user=$$MYSQL_USER --password=$$MYSQL_ROOT_PASSWORD --host=localhost -e 'SHOW DATABASES;'
+      timeout: 5s
+      retries: 5           
 
   phpmyadmin:
+    container_name: phpmyadmindev  
     depends_on:
       - mysql
     image: phpmyadmin/phpmyadmin

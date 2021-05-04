@@ -1,73 +1,62 @@
-import e, * as express from 'express';
-import MovieRepo from '../repository/MovieRepo.js';
-import fetch from 'node-fetch';
-import authenticateRole from '../services/authenticateRole.js'
-import authenticateJWT from '../services/authenticateToken.js'
-const router = express.Router();
+import e, * as express from 'express'
+import { StatusCode } from 'status-code-enum'
+import MovieRepo from '../repository/MovieRepo'
+import authenticateRole from '../services/authenticateRole'
+import authenticateJWT from '../services/authenticateToken'
+import omdApi, { omdbError } from '../services/omdbUtils'
+import checkBasicUser, {routerUtilsError} from '../services/routerUtils'
+const router = express.Router()
 
-router.get('/',authenticateJWT, async (req, res) => {
-  const repo = new MovieRepo();
+router.get('/', authenticateJWT, async (req, res) => {
+  const repo = new MovieRepo()
 
   try {
-  const collection = await repo.getAllRecords();
-    return res.status(200).json(collection);
+    const collection = await repo.getUserRecords(authenticateRole(req))
+    return res.status(StatusCode.SuccessOK).json(collection)
   } catch (err) {
-    console.log(err);
-    res.send(err);
-    return res.status(500).end();
+    console.log(err)
+    res.send(err)
+    return res.status(StatusCode.ServerErrorInternal).end()
   }
-});
+})
 
-router.post('/',authenticateJWT,async (req, res) => { 
-
-  if (authenticateRole(req) === 'basic') {
-    const repo = new MovieRepo();
-    try {
-      const collection = await repo.getCountOfRecordsCreatedByBasicUserInCurrentMonth();
-
-      if( collection.count >= 5 ) {
-        return res.status(403).json({message: 'Basic user can create only 5 records per month.'}).end();
-      }
-       
-      } catch ( err ) {
-        console.log(err);
-        res.send(err);
-        return res.status(500).end();
-      }
+router.post('/', authenticateJWT, async (req, res) => {
+  const { title } = req.body
+  if (!title) {
+    return res.status(StatusCode.ClientErrorBadRequest).json({
+      message: 'Title is missing'
+    })
   }
+try {
+  const answer = await checkBasicUser(req)
+  if (answer) {
+    return res.status(StatusCode.ClientErrorForbidden).json({ message: 'Basic user can create only 5 records per month.' }).end()
+  }
+} catch (error) {
+  if (error instanceof routerUtilsError) {
+    return res.status(StatusCode.ClientErrorBadRequest).json({ error: error.message })
+  }
+  next(error)
+}
 
-  fetch(`http://www.omdbapi.com/?t=${req.body.title}&apikey=e546ae44`)
-  .then(res => res.json())
-  .then(json => {
-    const repo = new MovieRepo();
-    if (!req.body.title) {
-      return res.status(400).json({
-        message: `Title is missing`,
-      });
-    }
-
-    if(json.Error) {
-      return res.status(500).json({
-        message: json.Error,
-      });
-    }
-
-    const movieToSave = {
-      Title: json.Title,
-      Director: json.Director,
-      Released: json.Released,
-      Genre: json.Genre,
-      createdBy: authenticateRole(req)
-    }
-
+  try {
+    const movieToSave = await omdApi(title, authenticateRole(req))
     try {
-      const collection = repo.create(movieToSave)
-      return res.status(201).json(collection);
+      const repo = new MovieRepo()
+      const collection = await repo.create(movieToSave)
+      return res.status(StatusCode.SuccessCreated).json(movieToSave)
     } catch (err) {
-      console.log(err);
-      return res.status(500).end();
+      console.log(err)
+      return res.status(StatusCode.ServerErrorInternal).json({
+        message: `An error occured: ${err}`
+      })
     }
-  }).catch(err => console.error(err));
-});
+  } catch (error) {
+    if (error instanceof omdbError) {
+      return res.status(StatusCode.ClientErrorBadRequest).json({ error: error.message })
+    }
+    next(error)
+  }
+})
 
-export default router;
+export default router

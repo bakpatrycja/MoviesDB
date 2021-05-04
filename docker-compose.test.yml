@@ -1,0 +1,54 @@
+version: "3.2"
+services:
+  apptest:
+    container_name: apptest
+    build:
+      context: .
+      dockerfile: DockerfileTest
+    env_file:
+      - .test.env      
+    ports:
+      - published: ${APP_PORT:-3001}
+        target: 3001
+    volumes:
+      - .:/app/
+    depends_on:
+      - mysqltest
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    restart: on-failure
+
+  mysqltest:
+    image: mysql:5.7    
+    container_name: mysqltest
+    build:
+      context: .
+      dockerfile: DockerfileTestDb    
+    env_file:
+      - .test.env
+    environment:
+      MYSQL_USER: $DB_USER
+      MYSQL_HOST: $DB_HOST
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+    ports:
+      - '3406:3307'   
+    restart: unless-stopped
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: mysql -u -p --user=$$MYSQL_USER --password=$$MYSQL_ROOT_PASSWORD --host=localhost -e 'SHOW DATABASES;'
+      timeout: 5s
+      retries: 5     
+
+  phpmyadmintest:
+    container_name: phpmyadmintest
+    depends_on:
+      - mysqltest
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysqltest
+    links:
+      - mysqltest:mysqltest
+    ports:
+      - 5427:80
+    restart: always

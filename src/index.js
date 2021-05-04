@@ -1,6 +1,7 @@
-import { app } from './server.js';
+import { app } from './server.js'
+require('dotenv').config()
+const { PORT } = process.env
 
-const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`auth svc running at port ${PORT}`);
-});
+  console.log(`auth svc running at port ${PORT}`)
+})

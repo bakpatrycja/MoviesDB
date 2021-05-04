@@ -1,55 +1,70 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const { authFactory, AuthError } = require("./services/authenticateCreateToken");
-import MovieController from './controllers/MovieController.js';
-require('dotenv').config()
+import express from 'express'
+import bodyParser from 'body-parser'
+import { StatusCode } from 'status-code-enum'
+import { authFactory, AuthError } from './services/authenticateCreateToken'
+import MovieController from './controllers/MovieController'
+import mysql from './database/db'
 
-const PORT = 3000;
-const { JWT_SECRET } = process.env;
+require('dotenv').config()
+const { JWT_SECRET } = process.env
 
 if (!JWT_SECRET) {
-  throw new Error("Missing JWT_SECRET env var. Set it and restart the server");
+  throw new Error('Missing JWT_SECRET env var. Set it and restart the server')
 }
 
-const auth = authFactory(JWT_SECRET);
-export const app = express();
-app.use(bodyParser.json());
+const auth = authFactory(JWT_SECRET)
+export const app = express()
+app.use(bodyParser.json())
 
-app.get('/', (_, res) => { 
-  res.status(200).send('Netguru recruitment task - main page. :)'); 
-});
+app.get('/healthcheck', async (_, res) => {
+  try {
+    await mysql.authenticate()
+    return res.status(200).json({
+      database: 'OK'
+    })
+  } catch (err) {
+    return res.status(500).json({
+      server: 'OK',
+      database: 'DOWN'
+    })
+  }
+})
 
-app.post("/auth", (req, res, next) => {
+app.get('/', (_, res) => {
+  res.status(StatusCode.SuccessOK).send('Netguru recruitment task - main page. :)')
+})
+
+app.post('/auth', (req, res, next) => {
   if (!req.body) {
-    return res.status(400).json({ error: "invalid payload" });
+    return res.status(StatusCode.ClientErrorBadRequest).json({ error: 'invalid payload' })
   }
 
-  const { username, password } = req.body;
+  const { username, password } = req.body
 
   if (!username || !password) {
-    return res.status(400).json({ error: "invalid payload" });
+    return res.status(StatusCode.ClientErrorBadRequest).json({ error: 'invalid payload' })
   }
 
   try {
-    const token = auth(username, password);
+    const token = auth(username, password)
 
-    return res.status(200).json({ token });
+    return res.status(StatusCode.SuccessOK).json({ token })
   } catch (error) {
     if (error instanceof AuthError) {
-      return res.status(401).json({ error: error.message });
+      return res.status(StatusCode.ClientErrorUnauthorized).json({ error: error.message })
     }
 
-    next(error);
+    next(error)
   }
-});
+})
 
 app.use((error, _, res, __) => {
   console.error(
     `Error processing request ${error}. See next message for details`
-  );
-  console.error(error);
+  )
+  console.error(error)
 
-  return res.status(500).json({ error: "internal server error" });
-});
+  return res.status(500).json({ error: 'internal server error' })
+})
 
-app.use('/movies', MovieController); 
+app.use('/movies', MovieController)

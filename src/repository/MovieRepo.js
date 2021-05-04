@@ -1,24 +1,31 @@
-import Movie from '../database/models/Movies.js';
-import * as Sequelize from 'sequelize';
+import * as Sequelize from 'sequelize'
+import Movie from '../database/models/Movies.js'
 
 export default class MovieRepo {
-  async getAllRecords() {
-    return await Movie.findAll()
+  async getUserRecords (role) {
+    return await Movie.findAll(
+      {
+        where: {
+          createdBy: role
+        }
+      }
+    )
   }
 
-  async getCountOfRecordsCreatedByBasicUserInCurrentMonth() {
-    const currentDate = new Date();
-    const currentMonth   = currentDate.getMonth() +1;
+  async GetUserCountedRecords (role) {
+    const currentDate = new Date()
+    const currentMonth = currentDate.getMonth() + 1
 
     return await Movie.findAndCountAll({
       where: {
-        createdBy: 'basic',
-        createdAt: Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('createdAt')), currentMonth)   
+        createdBy: role,
+        createdAt: Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('createdAt')), currentMonth)
       },
-      limit: 7
-  })}
+      limit: 5
+    })
+  }
 
-  async create(movie) {
-    await Movie.create(movie);
+  async create (movie) {
+    await Movie.create(movie)
   }
 }
