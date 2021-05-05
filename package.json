@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "prestart": "npm install",
     "start": "node -r esm src/index.js",
     "test": "mocha --recursive 'src/**/*.test.js' --require esm",
     "lint": "eslint --fix . --ext .js"

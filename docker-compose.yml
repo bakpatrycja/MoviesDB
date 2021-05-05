@@ -2,7 +2,7 @@ version: "3.2"
 services:
   app:
     container_name: appdev
-    command: npm start  
+    command: npm start
     build:
       context: .
       dockerfile: Dockerfile

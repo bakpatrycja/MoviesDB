@@ -5,10 +5,10 @@ COPY ./config ./
 COPY ./migrations ./
 COPY ./seeders ./
 COPY ./models ./
-COPY ./package.json ./package-lock.json ./
+COPY package*.json ./
 RUN npm install
 
 RUN mkdir ./src
 COPY ./src ./src
 
-CMD ["npm", "install"]
+CMD [ "npm", "prestart" ]
