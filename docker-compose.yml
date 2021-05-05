@@ -20,8 +20,9 @@ services:
     container_name: mysqldev           
     image: mysql:5.7
     env_file:
-      - .env
+      - .env  
     environment:
+      MYSQL_USER: $DB_USER
       MYSQL_HOST: $DB_HOST
       MYSQL_ROOT_PASSWORD: $DB_PASSWORD
     ports:

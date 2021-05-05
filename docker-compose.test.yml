@@ -2,12 +2,12 @@ version: "3.2"
 services:
   apptest:
     container_name: apptest
-    command: npm start  
+    command: npm start 
     build:
       context: .
-      dockerfile: DockerfileTest
+      dockerfile: Dockerfile
     env_file:
-      - .test.env      
+      - ./testEnv/.env      
     ports:
       - published: ${APP_PORT:-3001}
         target: 3001
@@ -26,8 +26,9 @@ services:
       context: .
       dockerfile: DockerfileTestDb    
     env_file:
-      - .test.env
+      - ./testEnv/.env
     environment:
+      MYSQL_USER: $DB_USER
       MYSQL_HOST: $DB_HOST
       MYSQL_ROOT_PASSWORD: $DB_PASSWORD
     ports:
