@@ -2,6 +2,7 @@ version: "3.2"
 services:
   apptest:
     container_name: apptest
+    command: npm start  
     build:
       context: .
       dockerfile: DockerfileTest
