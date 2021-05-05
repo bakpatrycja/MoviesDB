@@ -12,3 +12,4 @@ RUN mkdir ./src
 COPY ./src ./src
 
 CMD [ "npm", "prestart" ]
+CMD [ "npm", "start" ]
