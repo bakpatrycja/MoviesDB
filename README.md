@@ -4,7 +4,7 @@
 
   
 
-This project is a recruitment task for Netguru company. It allows to store and create records based on omdbAPI.
+It allows to store and create records based on omdbAPI.
 
   
 
